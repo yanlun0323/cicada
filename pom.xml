@@ -7,7 +7,7 @@
     <groupId>top.crossoverjie.opensource</groupId>
     <artifactId>cicada</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.2</version>
+    <version>2.0.4</version>
 
     <name>cicada</name>
     <description>Fast, lightweight Web framework based on Netty</description>
@@ -24,6 +24,7 @@
         <module>cicada-example</module>
         <module>cicada-ioc</module>
         <module>cicada-base</module>
+        <module>cicada-db</module>
     </modules>
 
     <properties>
@@ -36,7 +37,7 @@
 
     <issueManagement>
         <system>github</system>
-        <url>https://github.com/TogetherOS/cicadaissues</url>
+        <url>https://github.com/TogetherOS/cicada/issues</url>
     </issueManagement>
 
     <scm>
@@ -101,8 +102,9 @@
             <dependency>
                 <groupId>top.crossoverjie.opensource</groupId>
                 <artifactId>cicada-base</artifactId>
-                <version>1.0.2</version>
+                <version>1.0.3</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 

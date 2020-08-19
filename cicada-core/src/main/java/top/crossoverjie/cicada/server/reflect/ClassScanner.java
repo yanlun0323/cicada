@@ -7,6 +7,7 @@ import top.crossoverjie.cicada.server.annotation.CicadaAction;
 import top.crossoverjie.cicada.server.annotation.CicadaBean;
 import top.crossoverjie.cicada.server.annotation.Interceptor;
 import top.crossoverjie.cicada.server.bean.CicadaDefaultBean;
+import top.crossoverjie.cicada.server.bootstrap.InitializeHandle;
 import top.crossoverjie.cicada.server.configuration.AbstractCicadaConfiguration;
 import top.crossoverjie.cicada.server.configuration.ApplicationConfiguration;
 import top.crossoverjie.cicada.server.enums.StatusEnum;
@@ -18,7 +19,15 @@ import java.lang.annotation.Annotation;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -41,6 +50,8 @@ public final class ClassScanner {
     private static Set<Class<?>> cicada_classes = null;
 
     private static List<Class<?>> configurationList = null;
+
+    private static List<Class<?>> initHandleList = null;
 
 
     /**
@@ -74,6 +85,33 @@ public final class ClassScanner {
         }
         return configurationList;
     }
+
+    /**
+     *
+     * @param packageName
+     * @return
+     * @throws Exception
+     */
+    public static List<Class<?>> getInitHandles(String packageName) throws Exception{
+        if (initHandleList == null){
+            Set<Class<?>> clsList = getClasses(packageName);
+
+            if (clsList == null || clsList.isEmpty()) {
+                return initHandleList;
+            }
+
+            initHandleList = new ArrayList<>(16);
+            for (Class<?> cls : clsList) {
+
+                if (cls.getSuperclass() != InitializeHandle.class) {
+                    continue;
+                }
+                initHandleList.add(cls) ;
+            }
+        }
+        return initHandleList ;
+    }
+
     /**
      * get @CicadaAction & @CicadaBean
      *
@@ -230,7 +268,7 @@ public final class ClassScanner {
     }
 
 
-    public static void findAndAddClassesInPackageByFile(String packageName,
+    private static void findAndAddClassesInPackageByFile(String packageName,
                                                         String packagePath, final boolean recursive, Set<Class<?>> classes) {
         File dir = new File(packagePath);
         if (!dir.exists() || !dir.isDirectory()) {
@@ -259,10 +297,24 @@ public final class ClassScanner {
     private static final String BASE_PACKAGE = "top.crossoverjie.cicada";
 
     /**
+     * get CicadaFactory object by spi.
+     * @return
+     */
+    public static CicadaBeanFactory getCicadaBeanFactory() {
+        ServiceLoader<CicadaBeanFactory> cicadaBeanFactories = ServiceLoader.load(CicadaBeanFactory.class);
+        if (cicadaBeanFactories.iterator().hasNext()){
+            return cicadaBeanFactories.iterator().next() ;
+        }
+
+        return new CicadaDefaultBean();
+    }
+
+    /**
      * get custom route bean
      * @return
      * @throws Exception
      */
+    @Deprecated
     public static Class<?> getBeanFactory() throws Exception {
         List<Class<?>> classList = new ArrayList<>();
 
@@ -295,8 +347,8 @@ public final class ClassScanner {
         return classList.get(0);
     }
 
-
-    public static Set<Class<?>> getCustomRouteBeanClasses(String packageName) throws Exception {
+    @Deprecated
+    private static Set<Class<?>> getCustomRouteBeanClasses(String packageName) throws Exception {
 
         if (cicada_classes == null){
             cicada_classes = new HashSet<>(32) ;
